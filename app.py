@@ -29,7 +29,7 @@ def hello_world():
             password=val.pg_password,
             database=val.pd_database)
         cursor = db.cursor()
-        cursor.execute("""select id_action, name, time, clip_path from events join action_types on action_types.id = events.id_action;""")
+        cursor.execute("""select events.id-3, name, time, clip_path,id_action from events join action_types on action_types.id = events.id_action;""")
         table = cursor.fetchall()
         paths_for_actions = [i[3] for i in table]
         # for i in paths_for_actions:
