@@ -1,45 +1,45 @@
-from flask import Flask,render_template, url_for
+import os
+from dotenv import load_dotenv
+
 import psycopg2
 from minio import Minio
-import val
+
+from flask import Flask,render_template, url_for
+
+load_dotenv()
+
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT")
+POSTGRES_USER = os.environ.get("POSTGRES_USER")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+POSTGRES_DB = os.environ.get("POSTGRES_DB")
 
 app = Flask(__name__)
 
 @app.route('/')
-def hello_world():
+def main():
     db = None
     paths_for_actions = []
     table = []
     try:
-        # client = Minio(
-        #     val.MINIO_ENDPOINT_URL,
-        #     access_key=val.MINIO_ACCESS_KEY,
-        #     secret_key=val.MINIO_SECRET_KEY,
-        #     secure=False
-        # )
-        # def get_file_to_s3(object_name, file_path):
-        #     found = client.bucket_exists(val.MINIO_BUCKET)
-        #     assert found == True
-        #     client.fget_object(val.MINIO_BUCKET, object_name, file_path)
-
         db = psycopg2.connect(
-            host=val.pg_host,
-            port=val.pg_port,
-            user=val.pg_user,
-            password=val.pg_password,
-            database=val.pd_database)
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            database=POSTGRES_DB
+        )
         cursor = db.cursor()
-        cursor.execute("""select events.id-3, name, time, clip_path,id_action from events join action_types on action_types.id = events.id_action;""")
+        cursor.execute("""select events.id-3, name, time, clip_path,id_action 
+                          from events 
+                          join action_types on action_types.id = events.id_action;""")
         table = cursor.fetchall()
-        paths_for_actions = [i[3] for i in table]
-        # for i in paths_for_actions:
-        #     get_file_to_s3(i,i)
-
         cursor.close()
         db.close()
+        paths_for_actions = [i[3] for i in table]
     except:
-        print("эрор")
+        print("Error")
     return render_template('index.html', massiv=paths_for_actions, table=table)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
